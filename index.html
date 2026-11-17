@@ -4,477 +4,71 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Run Tracker</title>
-  
-  <!-- Leaflet CSS per la mappa -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  
   <style>
     :root {
-      --bg: #0b0e14;
-      --card: #151a23;
-      --card-border: #252d3d;
-      --accent: #00e676;
-      --accent-dim: rgba(0, 230, 118, 0.15);
-      --secondary: #38bdf8;
-      --danger: #ff5252;
-      --danger-dim: rgba(255, 82, 82, 0.16);
-      --warning: #ffb74d;
-      --text: #f1f5f9;
-      --muted: #94a3b8;
+      --bg: #0b0e14; --card: #151a23; --card-border: #252d3d;
+      --accent: #00e676; --accent-dim: rgba(0, 230, 118, 0.15);
+      --secondary: #38bdf8; --danger: #ff5252; --danger-dim: rgba(255, 82, 82, 0.16);
+      --warning: #ffb74d; --text: #f1f5f9; --muted: #94a3b8;
     }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    body {
-      background-color: var(--bg);
-      color: var(--text);
-      min-height: 100dvh;
-      display: flex;
-      flex-direction: column;
-      overflow-x: hidden;
-    }
-
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 14px 18px;
-      background: var(--card);
-      border-bottom: 1px solid var(--card-border);
-    }
-
-    header h1 {
-      font-size: 1.05rem;
-      letter-spacing: 0.5px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .dot-live {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: var(--muted);
-      flex-shrink: 0;
-    }
-
-    .dot-live.active {
-      background: var(--accent);
-      box-shadow: 0 0 10px var(--accent);
-    }
-
-    .dot-live.warn {
-      background: var(--warning);
-      box-shadow: 0 0 8px var(--warning);
-    }
-
-    .gps-badge {
-      font-size: 0.72rem;
-      font-weight: 600;
-      color: var(--muted);
-      background: #0b0e14;
-      border: 1px solid var(--card-border);
-      padding: 2px 7px;
-      border-radius: 6px;
-      font-variant-numeric: tabular-nums;
-    }
-
-    .icon-btn {
-      background: transparent;
-      border: 1px solid var(--card-border);
-      color: var(--text);
-      padding: 8px 12px;
-      border-radius: 10px;
-      font-size: 0.85rem;
-      cursor: pointer;
-    }
-
-    .container {
-      flex: 1;
-      padding: 16px;
-      max-width: 540px;
-      width: 100%;
-      margin: 0 auto;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
-
-    .screen {
-      display: none;
-      flex-direction: column;
-      gap: 14px;
-      flex: 1;
-    }
-
-    .screen.active {
-      display: flex;
-    }
-
-    .card {
-      background: var(--card);
-      border: 1px solid var(--card-border);
-      border-radius: 16px;
-      padding: 16px;
-    }
-
-    /* Selettore Modalità */
-    .mode-switch {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
-
-    .mode-btn {
-      background: #0f131a;
-      border: 2px solid var(--card-border);
-      color: var(--muted);
-      padding: 14px 10px;
-      border-radius: 14px;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .mode-btn.selected {
-      border-color: var(--accent);
-      background: var(--accent-dim);
-      color: var(--text);
-    }
-
-    .mode-btn strong {
-      display: block;
-      font-size: 1rem;
-      margin-bottom: 4px;
-    }
-
-    .mode-btn span {
-      font-size: 0.78rem;
-      color: var(--muted);
-    }
-
-    /* Input & Form */
-    .field-group {
-      margin-top: 12px;
-    }
-
-    .field-group:first-child {
-      margin-top: 0;
-    }
-
-    .field-group label {
-      display: block;
-      font-size: 0.85rem;
-      color: var(--muted);
-      margin-bottom: 6px;
-    }
-
-    .row-2 {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
-
-    input[type="number"], input[type="url"], textarea {
-      width: 100%;
-      background: #0b0e14;
-      border: 1px solid var(--card-border);
-      color: var(--text);
-      padding: 11px 12px;
-      border-radius: 10px;
-      font-size: 1rem;
-    }
-
-    input:focus, textarea:focus {
-      outline: none;
-      border-color: var(--accent);
-    }
-
-    .hint {
-      font-size: 0.78rem;
-      color: var(--muted);
-      margin-top: 5px;
-      line-height: 1.4;
-    }
-
-    /* Pulsanti Principali */
-    .btn-primary {
-      background: var(--accent);
-      color: #06130b;
-      border: none;
-      padding: 16px;
-      border-radius: 14px;
-      font-size: 1.05rem;
-      font-weight: 700;
-      letter-spacing: 0.5px;
-      cursor: pointer;
-      width: 100%;
-      margin-top: auto;
-    }
-
-    .btn-secondary {
-      background: var(--card);
-      color: var(--text);
-      border: 1px solid var(--card-border);
-      padding: 14px;
-      border-radius: 14px;
-      font-size: 0.95rem;
-      font-weight: 600;
-      cursor: pointer;
-      width: 100%;
-    }
-
-    .btn-gpx {
-      background: rgba(56, 189, 248, 0.14);
-      color: var(--secondary);
-      border: 1px solid rgba(56, 189, 248, 0.4);
-      padding: 14px;
-      border-radius: 14px;
-      font-size: 0.95rem;
-      font-weight: 700;
-      cursor: pointer;
-      width: 100%;
-    }
-
-    .btn-danger {
-      background: var(--danger);
-      color: #fff;
-      border: none;
-      padding: 14px;
-      border-radius: 14px;
-      font-size: 0.95rem;
-      font-weight: 700;
-      cursor: pointer;
-      width: 100%;
-    }
-
-    /* Schermata Corsa Attiva */
-    .metrics-grid-4 {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-      text-align: center;
-    }
-
-    .metrics-grid-3 {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-      text-align: center;
-    }
-
-    .metric-box {
-      background: var(--card);
-      border: 1px solid var(--card-border);
-      border-radius: 12px;
-      padding: 10px 6px;
-    }
-
-    .metric-val {
-      font-size: 1.45rem;
-      font-weight: 800;
-      font-variant-numeric: tabular-nums;
-      color: var(--accent);
-    }
-
-    .metric-val.secondary {
-      color: var(--secondary);
-    }
-
-    .metric-lbl {
-      font-size: 0.7rem;
-      color: var(--muted);
-      text-transform: uppercase;
-      margin-top: 2px;
-    }
-
-    .status-banner {
-      background: var(--accent-dim);
-      border: 1px solid rgba(0, 230, 118, 0.3);
-      color: var(--accent);
-      padding: 8px 12px;
-      border-radius: 10px;
-      font-size: 0.84rem;
-      text-align: center;
-      font-weight: 600;
-    }
-
-    .pacer-banner {
-      display: none;
-      background: #0f131a;
-      border: 1px solid var(--card-border);
-      padding: 8px 12px;
-      border-radius: 10px;
-      font-size: 0.85rem;
-      font-weight: 700;
-      justify-content: space-between;
-      align-items: center;
-      font-variant-numeric: tabular-nums;
-    }
-
-    .pacer-banner.active {
-      display: flex;
-    }
-
-    .pacer-ahead {
-      color: var(--accent);
-      border-color: rgba(0, 230, 118, 0.4);
-      background: var(--accent-dim);
-    }
-
-    .pacer-behind {
-      color: var(--danger);
-      border-color: rgba(255, 82, 82, 0.4);
-      background: var(--danger-dim);
-    }
-
-    #map {
-      width: 100%;
-      height: 270px;
-      border-radius: 16px;
-      border: 1px solid var(--card-border);
-      z-index: 1;
-      background: #151a23;
-    }
-
-    /* Tema scuro automatico per OpenStreetMap */
-    #map .leaflet-tile-pane,
-    #summaryMap .leaflet-tile-pane {
-      filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
-    }
-
-    .map-wrapper {
-      position: relative;
-    }
-
-    .recenter-btn {
-      position: absolute;
-      bottom: 12px;
-      right: 12px;
-      z-index: 1000;
-      background: var(--card);
-      color: var(--text);
-      border: 1px solid var(--card-border);
-      padding: 8px 12px;
-      border-radius: 10px;
-      font-size: 0.8rem;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-      cursor: pointer;
-    }
-
-    /* Tabella Parziali (Splits) */
-    .splits-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 8px;
-      font-size: 0.88rem;
-      font-variant-numeric: tabular-nums;
-    }
-
-    .splits-table th {
-      text-align: left;
-      color: var(--muted);
-      font-size: 0.74rem;
-      text-transform: uppercase;
-      padding: 6px 8px;
-      border-bottom: 1px solid var(--card-border);
-    }
-
-    .splits-table td {
-      padding: 8px;
-      border-bottom: 1px solid rgba(37, 45, 61, 0.5);
-    }
-
-    .splits-table tr:last-child td {
-      border-bottom: none;
-    }
-
-    /* Slider RPE */
-    .rpe-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 8px;
-    }
-
-    .rpe-badge {
-      background: var(--accent-dim);
-      color: var(--accent);
-      border: 1px solid rgba(0, 230, 118, 0.35);
-      padding: 3px 10px;
-      border-radius: 8px;
-      font-size: 0.82rem;
-      font-weight: 700;
-    }
-
-    input[type="range"] {
-      width: 100%;
-      accent-color: var(--accent);
-      height: 8px;
-      background: #0b0e14;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-
-    /* Overlay Countdown 5s */
-    .countdown-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(11, 14, 20, 0.96);
-      z-index: 3000;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 18px;
-      padding: 24px;
-      text-align: center;
-    }
-
-    .countdown-overlay.open {
-      display: flex;
-    }
-
-    .countdown-number {
-      font-size: 6.5rem;
-      font-weight: 900;
-      color: var(--accent);
-      line-height: 1;
-      text-shadow: 0 0 30px rgba(0, 230, 118, 0.4);
-      font-variant-numeric: tabular-nums;
-    }
-
-    /* Modal Impostazioni */
-    .modal-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.8);
-      z-index: 2000;
-      align-items: center;
-      justify-content: center;
-      padding: 16px;
-    }
-
-    .modal-overlay.open {
-      display: flex;
-    }
-
-    .modal-card {
-      background: var(--card);
-      border: 1px solid var(--card-border);
-      border-radius: 16px;
-      padding: 20px;
-      width: 100%;
-      max-width: 440px;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
+    body { background: var(--bg); color: var(--text); min-height: 100dvh; display: flex; flex-direction: column; overflow-x: hidden; }
+    header { display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; background: var(--card); border-bottom: 1px solid var(--card-border); }
+    header h1 { font-size: 1.05rem; letter-spacing: 0.5px; display: flex; align-items: center; gap: 8px; }
+    .dot-live { width: 10px; height: 10px; border-radius: 50%; background: var(--muted); flex-shrink: 0; }
+    .dot-live.active { background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+    .dot-live.warn { background: var(--warning); box-shadow: 0 0 8px var(--warning); }
+    .gps-badge { font-size: 0.72rem; font-weight: 600; color: var(--muted); background: #0b0e14; border: 1px solid var(--card-border); padding: 2px 7px; border-radius: 6px; font-variant-numeric: tabular-nums; }
+    .icon-btn { background: transparent; border: 1px solid var(--card-border); color: var(--text); padding: 8px 12px; border-radius: 10px; font-size: 0.85rem; cursor: pointer; }
+    .container { flex: 1; padding: 16px; max-width: 540px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
+    .screen { display: none; flex-direction: column; gap: 14px; flex: 1; }
+    .screen.active { display: flex; }
+    .card { background: var(--card); border: 1px solid var(--card-border); border-radius: 16px; padding: 16px; }
+    .mode-switch { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .mode-btn { background: #0f131a; border: 2px solid var(--card-border); color: var(--muted); padding: 14px 10px; border-radius: 14px; text-align: center; cursor: pointer; }
+    .mode-btn.selected { border-color: var(--accent); background: var(--accent-dim); color: var(--text); }
+    .mode-btn strong { display: block; font-size: 1rem; margin-bottom: 4px; }
+    .mode-btn span { font-size: 0.78rem; color: var(--muted); }
+    .field-group { margin-top: 12px; }
+    .field-group:first-child { margin-top: 0; }
+    .field-group label { display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 6px; }
+    .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    input[type="number"], input[type="url"], textarea { width: 100%; background: #0b0e14; border: 1px solid var(--card-border); color: var(--text); padding: 11px 12px; border-radius: 10px; font-size: 1rem; }
+    input:focus, textarea:focus { outline: none; border-color: var(--accent); }
+    .hint { font-size: 0.78rem; color: var(--muted); margin-top: 5px; line-height: 1.4; }
+    .btn-primary { background: var(--accent); color: #06130b; border: none; padding: 16px; border-radius: 14px; font-size: 1.05rem; font-weight: 700; cursor: pointer; width: 100%; margin-top: auto; }
+    .btn-secondary { background: var(--card); color: var(--text); border: 1px solid var(--card-border); padding: 14px; border-radius: 14px; font-size: 0.95rem; font-weight: 600; cursor: pointer; width: 100%; }
+    .btn-gpx { background: rgba(56, 189, 248, 0.14); color: var(--secondary); border: 1px solid rgba(56, 189, 248, 0.4); padding: 14px; border-radius: 14px; font-size: 0.95rem; font-weight: 700; cursor: pointer; width: 100%; }
+    .btn-danger { background: var(--danger); color: #fff; border: none; padding: 14px; border-radius: 14px; font-size: 0.95rem; font-weight: 700; cursor: pointer; width: 100%; }
+    .metrics-grid-4 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; text-align: center; }
+    .metrics-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: center; }
+    .metric-box { background: var(--card); border: 1px solid var(--card-border); border-radius: 12px; padding: 10px 6px; }
+    .metric-val { font-size: 1.45rem; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--accent); }
+    .metric-val.secondary { color: var(--secondary); }
+    .metric-lbl { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; margin-top: 2px; }
+    .status-banner { background: var(--accent-dim); border: 1px solid rgba(0, 230, 118, 0.3); color: var(--accent); padding: 8px 12px; border-radius: 10px; font-size: 0.84rem; text-align: center; font-weight: 600; }
+    .pacer-banner { display: none; background: #0f131a; border: 1px solid var(--card-border); padding: 8px 12px; border-radius: 10px; font-size: 0.85rem; font-weight: 700; justify-content: space-between; align-items: center; font-variant-numeric: tabular-nums; }
+    .pacer-banner.active { display: flex; }
+    .pacer-ahead { color: var(--accent); border-color: rgba(0, 230, 118, 0.4); background: var(--accent-dim); }
+    .pacer-behind { color: var(--danger); border-color: rgba(255, 82, 82, 0.4); background: var(--danger-dim); }
+    #map { width: 100%; height: 270px; border-radius: 16px; border: 1px solid var(--card-border); z-index: 1; background: #151a23; }
+    #map .leaflet-tile-pane, #summaryMap .leaflet-tile-pane { filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%); }
+    .map-wrapper { position: relative; }
+    .recenter-btn { position: absolute; bottom: 12px; right: 12px; z-index: 1000; background: var(--card); color: var(--text); border: 1px solid var(--card-border); padding: 8px 12px; border-radius: 10px; font-size: 0.8rem; box-shadow: 0 4px 12px rgba(0,0,0,0.5); cursor: pointer; }
+    .splits-table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 0.88rem; font-variant-numeric: tabular-nums; }
+    .splits-table th { text-align: left; color: var(--muted); font-size: 0.74rem; text-transform: uppercase; padding: 6px 8px; border-bottom: 1px solid var(--card-border); }
+    .splits-table td { padding: 8px; border-bottom: 1px solid rgba(37, 45, 61, 0.5); }
+    .splits-table tr:last-child td { border-bottom: none; }
+    .rpe-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .rpe-badge { background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(0, 230, 118, 0.35); padding: 3px 10px; border-radius: 8px; font-size: 0.82rem; font-weight: 700; }
+    input[type="range"] { width: 100%; accent-color: var(--accent); height: 8px; background: #0b0e14; border-radius: 6px; cursor: pointer; }
+    .countdown-overlay { display: none; position: fixed; inset: 0; background: rgba(11, 14, 20, 0.96); z-index: 3000; flex-direction: column; align-items: center; justify-content: center; gap: 18px; padding: 24px; text-align: center; }
+    .countdown-overlay.open { display: flex; }
+    .countdown-number { font-size: 6.5rem; font-weight: 900; color: var(--accent); line-height: 1; text-shadow: 0 0 30px rgba(0, 230, 118, 0.4); font-variant-numeric: tabular-nums; }
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 2000; align-items: center; justify-content: center; padding: 16px; }
+    .modal-overlay.open { display: flex; }
+    .modal-card { background: var(--card); border: 1px solid var(--card-border); border-radius: 16px; padding: 20px; width: 100%; max-width: 440px; }
   </style>
 </head>
 <body>
@@ -485,26 +79,25 @@
       RUN TRACKER
       <span class="gps-badge" id="gpsAccBadge">GPS --</span>
     </h1>
-    <button class="icon-btn" onclick="openSettings()">⚙️ Google Sheet</button>
+    <button type="button" class="icon-btn" onclick="openSettings()">⚙️ Google Sheet</button>
   </header>
 
   <div class="container">
 
-    <!-- SCHERMATA 1: HOME / CONFIGURAZIONE -->
+    <!-- SCHERMATA 1: HOME -->
     <div id="screenHome" class="screen active">
       <div class="card">
         <div class="mode-switch">
-          <div class="mode-btn selected" id="btnModeTime" onclick="selectMode('time')">
+          <button type="button" class="mode-btn selected" id="btnModeTime" onclick="selectMode('time')">
             <strong>⏱️ A Tempo</strong>
             <span>Minuti & intervalli</span>
-          </div>
-          <div class="mode-btn" id="btnModeDist" onclick="selectMode('distance')">
+          </button>
+          <button type="button" class="mode-btn" id="btnModeDist" onclick="selectMode('distance')">
             <strong>📍 A Distanza</strong>
             <span>Avviso ogni 500m</span>
-          </div>
+          </button>
         </div>
 
-        <!-- Opzioni Corsa a Tempo -->
         <div id="configTime">
           <div class="field-group">
             <label>Tempo totale obiettivo (minuti)</label>
@@ -514,18 +107,17 @@
             <label>Avviso intervalli (lascia 0 per disattivare)</label>
             <div class="row-2">
               <div>
-                <input type="number" id="intervalMin" value="3" min="0" max="60" placeholder="Minuti" />
+                <input type="number" id="intervalMin" value="3" min="0" max="60" />
                 <div class="hint">Minuti</div>
               </div>
               <div>
-                <input type="number" id="intervalSec" value="0" min="0" max="59" placeholder="Secondi" />
+                <input type="number" id="intervalSec" value="0" min="0" max="59" />
                 <div class="hint">Secondi</div>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Opzioni Corsa a Chilometraggio -->
         <div id="configDist" style="display: none;">
           <div class="field-group">
             <label>Distanza obiettivo in km (0 = corsa libera)</label>
@@ -535,7 +127,6 @@
         </div>
       </div>
 
-      <!-- Virtual Pacer (Opzionale) -->
       <div class="card">
         <div class="field-group">
           <label>🎯 Virtual Pacer — Passo obiettivo /km (opzionale)</label>
@@ -549,19 +140,19 @@
               <div class="hint">Secondi /km</div>
             </div>
           </div>
-          <p class="hint">Lascia vuoto per disattivare. Avvisa se rallenti oltre 10s rispetto al ritmo target.</p>
+          <p class="hint">Lascia vuoto per disattivare. Avvisa se rallenti oltre 10s.</p>
         </div>
       </div>
 
       <div class="card">
         <div style="display:flex; justify-content:space-between; align-items:center;">
           <span style="font-size:0.9rem; color:var(--muted);">Test Sintesi Vocale</span>
-          <button class="icon-btn" onclick="testAudio()">🔊 Prova Voce</button>
+          <button type="button" class="icon-btn" onclick="testAudio()">🔊 Prova Voce</button>
         </div>
         <p class="hint" id="gpsStatusHome">Ricerca segnale GPS ad alta precisione...</p>
       </div>
 
-      <button class="btn-primary" onclick="initiateCountdown()">▶ INIZIA CORSA</button>
+      <button type="button" class="btn-primary" onclick="initiateCountdown()">▶ INIZIA CORSA</button>
     </div>
 
     <!-- SCHERMATA 2: CORSA IN CORSO -->
@@ -594,16 +185,16 @@
 
       <div class="map-wrapper">
         <div id="map"></div>
-        <button class="recenter-btn" onclick="recenterMap()">🎯 Centra GPS</button>
+        <button type="button" class="recenter-btn" onclick="recenterMap()">🎯 Centra GPS</button>
       </div>
 
       <div class="row-2" style="margin-top: auto;">
-        <button class="btn-secondary" id="btnPause" onclick="togglePause()">⏸ Pausa</button>
-        <button class="btn-danger" onclick="finishWorkout()">⏹ Termina</button>
+        <button type="button" class="btn-secondary" id="btnPause" onclick="togglePause()">⏸ Pausa</button>
+        <button type="button" class="btn-danger" onclick="finishWorkout()">⏹ Termina</button>
       </div>
     </div>
 
-    <!-- SCHERMATA 3: RIEPILOGO E SALVATAGGIO -->
+    <!-- SCHERMATA 3: RIEPILOGO -->
     <div id="screenSummary" class="screen">
       <div class="card">
         <h2 style="font-size:1.1rem; margin-bottom:12px;">Riepilogo Allenamento</h2>
@@ -624,24 +215,16 @@
 
         <div id="summaryMap" style="height: 190px; border-radius: 12px; margin-bottom: 14px; background: #151a23;"></div>
 
-        <!-- Tabella Parziali al Km -->
-        <div id="splitsSection" style="margin-bottom: 14px;">
+        <div style="margin-bottom: 14px;">
           <label style="font-size:0.85rem; color:var(--muted); display:block; margin-bottom:4px;">Parziali al Chilometro</label>
           <div style="background:#0b0e14; border:1px solid var(--card-border); border-radius:10px; padding:4px 8px;">
-            <table class="splits-table" id="splitsTable">
-              <thead>
-                <tr>
-                  <th>Tratto</th>
-                  <th>Passo</th>
-                  <th>Tempo Tot.</th>
-                </tr>
-              </thead>
+            <table class="splits-table">
+              <thead><tr><th>Tratto</th><th>Passo</th><th>Tempo Tot.</th></tr></thead>
               <tbody id="splitsTableBody"></tbody>
             </table>
           </div>
         </div>
 
-        <!-- Sforzo Percepito RPE -->
         <div class="field-group" style="margin-bottom: 14px;">
           <div class="rpe-header">
             <label style="margin:0;">Sforzo Percepito (RPE)</label>
@@ -651,159 +234,77 @@
         </div>
 
         <div class="field-group">
-          <label>Note allenamento (sensazioni, scarpe, percorso)</label>
+          <label>Note allenamento</label>
           <textarea id="runNotes" rows="2" placeholder="Es. Ottimo ritmo, gambe leggere..."></textarea>
         </div>
       </div>
 
-      <button class="btn-primary" id="btnSaveSheet" onclick="saveToGoogleSheet()">☁️ SALVA SU GOOGLE SHEET</button>
-      <button class="btn-gpx" onclick="downloadGPX()">📥 SCARICA FILE .GPX (Strava / Komoot)</button>
-      <button class="btn-secondary" onclick="resetToHome()">Torna alla Home senza salvare</button>
+      <button type="button" class="btn-primary" id="btnSaveSheet" onclick="saveToGoogleSheet()">☁️ SALVA SU GOOGLE SHEET</button>
+      <button type="button" class="btn-gpx" onclick="downloadGPX()">📥 SCARICA FILE .GPX (Strava / Komoot)</button>
+      <button type="button" class="btn-secondary" onclick="resetToHome()">Torna alla Home senza salvare</button>
     </div>
 
   </div>
 
-  <!-- OVERLAY CONTO ALLA ROVESCIA 5 SECONDI -->
+  <!-- OVERLAY COUNTDOWN -->
   <div class="countdown-overlay" id="countdownOverlay">
     <div style="font-size:1rem; color:var(--muted); letter-spacing:1px; text-transform:uppercase;">Preparati a partire</div>
     <div class="countdown-number" id="countdownDisplay">5</div>
-    <p class="hint" style="max-width:280px;">Aggancio satelliti GPS in corso. Puoi già mettere il telefono nella fascia.</p>
-    <button class="icon-btn" style="margin-top:10px; padding:10px 20px;" onclick="skipCountdown()">Parti subito ▶</button>
+    <p class="hint" style="max-width:280px;">Aggancio satelliti GPS in corso.</p>
+    <button type="button" class="icon-btn" style="margin-top:10px; padding:10px 20px;" onclick="skipCountdown()">Parti subito ▶</button>
   </div>
 
-  <!-- MODAL IMPOSTAZIONI GOOGLE SHEET -->
+  <!-- MODAL GOOGLE SHEET -->
   <div class="modal-overlay" id="settingsModal">
     <div class="modal-card">
       <h3 style="margin-bottom:8px;">Collegamento Google Drive</h3>
-      <p class="hint" style="margin-bottom:12px;">L'URL predefinito è già configurato nel codice. Modificalo qui solo se aggiorni il deployment di Google Apps Script.</p>
-      <input type="url" id="sheetUrlInput" placeholder="https://script.google.com/macros/s/.../exec" />
+      <p class="hint" style="margin-bottom:12px;">URL predefinito già configurato. Modificalo solo se cambi deployment.</p>
+      <input type="url" id="sheetUrlInput" />
       <div class="row-2" style="margin-top:14px;">
-        <button class="btn-secondary" onclick="closeSettings()">Chiudi</button>
-        <button class="btn-primary" style="padding:12px;" onclick="saveSettings()">Salva URL</button>
+        <button type="button" class="btn-secondary" onclick="closeSettings()">Chiudi</button>
+        <button type="button" class="btn-primary" style="padding:12px;" onclick="saveSettings()">Salva URL</button>
       </div>
     </div>
   </div>
 
-  <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
   <script>
-    // --- URL GOOGLE APPS SCRIPT PREDEFINITO ---
     const DEFAULT_SHEET_URL = 'https://script.google.com/macros/s/AKfycbyt9Q9o9M8uvkyeYcRLsQ_a51RGcnrTVDKP__vA05DJsGyMeNwOnHryey39dmzoPZ_Hjg/exec';
+    const GPS_CONFIG = { maxFirstAccuracy: 25, maxTrackingAccuracy: 20, smoothingWindow: 3, minStepMeters: 5.5, minHardwareSpeed: 0.55, maxPlausibleSpeed: 7.5 };
+    const RPE_LABELS = { 1: '1 — Riposo attivo', 2: '2 — Molto leggero', 3: '3 — Leggero', 4: '4 — Moderato basso', 5: '5 — Moderato', 6: '6 — Impegnativo', 7: '7 — Intenso', 8: '8 — Molto intenso', 9: '9 — Quasi massimale', 10: '10 — Massimale' };
 
-    // --- PARAMETRI MOTORE GPS ALTA PRECISIONE ---
-    const GPS_CONFIG = {
-      maxFirstAccuracy: 25,
-      maxTrackingAccuracy: 20,
-      smoothingWindow: 3,
-      minStepMeters: 5.5,
-      minHardwareSpeed: 0.55,
-      maxPlausibleSpeed: 7.5
-    };
+    let currentMode = 'time', isRunning = false, isPaused = false, justResumed = false, wakeLock = null, countdownTimer = null;
+    let startTimeMs = 0, pausedTotalMs = 0, pauseStartMs = 0, timerInterval = null;
+    let lastMinuteSpoken = 0, lastIntervalSpoken = 0, totalTargetSeconds = 0, intervalStepSeconds = 0, totalGoalReached = false;
+    let targetPaceSecPerKm = 0, lastPacerAlertSec = 0, wasBehindPacer = false;
+    let watchId = null, routePoints = [], trackHistory = [], rawGpsBuffer = [], lastPointTimeMs = 0, totalDistanceMeters = 0;
+    let last500mStep = 0, last500mDistMeters = 0, last500mElapsedSec = 0;
+    let kmSplits = [], lastKmDistMeters = 0, lastKmElapsedSec = 0, targetDistanceMeters = 0, distanceGoalReached = false, autoCenter = true;
+    let map = null, polyline = null, userMarker = null, summaryMap = null;
+    let sessionDateStr = '', sessionStartStr = '', sessionEndStr = '', sessionIsoStart = '';
 
-    const RPE_DESCRIPTIONS = {
-      1: '1 — Riposo attivo',
-      2: '2 — Molto leggero',
-      3: '3 — Leggero',
-      4: '4 — Moderato basso',
-      5: '5 — Moderato',
-      6: '6 — Impegnativo',
-      7: '7 — Intenso',
-      8: '8 — Molto intenso',
-      9: '9 — Quasi massimale',
-      10: '10 — Massimale'
-    };
-
-    // --- STATO GLOBALE ---
-    let currentMode = 'time'; // 'time' | 'distance'
-    let isRunning = false;
-    let isPaused = false;
-    let justResumed = false;
-    let wakeLock = null;
-    let countdownTimer = null;
-
-    // Timer & Audio
-    let startTimeMs = 0;
-    let pausedTotalMs = 0;
-    let pauseStartMs = 0;
-    let timerInterval = null;
-    let lastMinuteSpoken = 0;
-    let lastIntervalSpoken = 0;
-    let totalTargetSeconds = 0;
-    let intervalStepSeconds = 0;
-    let totalGoalReached = false;
-
-    // Virtual Pacer
-    let targetPaceSecPerKm = 0;
-    let lastPacerAlertSec = 0;
-    let wasBehindPacer = false;
-
-    // GPS, Distanza & Splits
-    let watchId = null;
-    let routePoints = [];      // [{ lat, lng, ele, timeIso }, ...]
-    let trackHistory = [];     // [{ distMeters, elapsedSec }, ...] per rolling pace 200m
-    let rawGpsBuffer = [];     // [{ lat, lng, acc }, ...]
-    let lastPointTimeMs = 0;
-    let totalDistanceMeters = 0;
-    let last500mStep = 0;
-    let last500mDistMeters = 0;
-    let last500mElapsedSec = 0;
-    let kmSplits = [];         // [{ label, splitSec, pace, cumulative }, ...]
-    let lastKmDistMeters = 0;
-    let lastKmElapsedSec = 0;
-    let targetDistanceMeters = 0;
-    let distanceGoalReached = false;
-    let autoCenter = true;
-
-    // Mappa Leaflet
-    let map = null;
-    let polyline = null;
-    let userMarker = null;
-    let summaryMap = null;
-
-    // Timestamp sessione
-    let sessionDateStr = '';
-    let sessionStartStr = '';
-    let sessionEndStr = '';
-    let sessionIsoStart = '';
-
-    // --- INIZIALIZZAZIONE ---
     window.addEventListener('load', () => {
-      const savedUrl = localStorage.getItem('run_sheet_url') || DEFAULT_SHEET_URL;
-      document.getElementById('sheetUrlInput').value = savedUrl;
-
+      document.getElementById('sheetUrlInput').value = localStorage.getItem('run_sheet_url') || DEFAULT_SHEET_URL;
       if ('geolocation' in navigator) {
         navigator.geolocation.getCurrentPosition(
           (pos) => {
             updateGpsIndicator(pos.coords.accuracy);
-            document.getElementById('gpsStatusHome').textContent =
-              `Segnale satellitare agganciato (precisione ±${Math.round(pos.coords.accuracy)}m)`;
+            document.getElementById('gpsStatusHome').textContent = `GPS pronto (precisione ±${Math.round(pos.coords.accuracy)}m)`;
           },
-          () => {
-            document.getElementById('gpsStatusHome').textContent =
-              'Attiva la geolocalizzazione del browser per tracciare la mappa.';
-          },
+          () => { document.getElementById('gpsStatusHome').textContent = 'Attiva la geolocalizzazione per la mappa.'; },
           { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
         );
       }
     });
 
-    function updateGpsIndicator(accuracy) {
-      const dot = document.getElementById('gpsDot');
-      const badge = document.getElementById('gpsAccBadge');
-      badge.textContent = `±${Math.round(accuracy)}m`;
-
+    function updateGpsIndicator(acc) {
+      const dot = document.getElementById('gpsDot'), badge = document.getElementById('gpsAccBadge');
+      badge.textContent = `±${Math.round(acc)}m`;
       dot.classList.remove('active', 'warn');
-      if (accuracy <= GPS_CONFIG.maxTrackingAccuracy) {
-        dot.classList.add('active');
-        badge.style.color = '#00e676';
-      } else {
-        dot.classList.add('warn');
-        badge.style.color = '#ffb74d';
-      }
+      if (acc <= GPS_CONFIG.maxTrackingAccuracy) { dot.classList.add('active'); badge.style.color = '#00e676'; }
+      else { dot.classList.add('warn'); badge.style.color = '#ffb74d'; }
     }
 
-    // --- UI & IMPOSTAZIONI ---
     function selectMode(mode) {
       currentMode = mode;
       document.getElementById('btnModeTime').classList.toggle('selected', mode === 'time');
@@ -812,62 +313,39 @@
       document.getElementById('configDist').style.display = mode === 'distance' ? 'block' : 'none';
     }
 
-    function openSettings() {
-      document.getElementById('settingsModal').classList.add('open');
-    }
-
-    function closeSettings() {
-      document.getElementById('settingsModal').classList.remove('open');
-    }
-
+    function openSettings() { document.getElementById('settingsModal').classList.add('open'); }
+    function closeSettings() { document.getElementById('settingsModal').classList.remove('open'); }
     function saveSettings() {
       const url = document.getElementById('sheetUrlInput').value.trim();
-      if (url) {
-        localStorage.setItem('run_sheet_url', url);
-      } else {
-        localStorage.removeItem('run_sheet_url');
-        document.getElementById('sheetUrlInput').value = DEFAULT_SHEET_URL;
-      }
+      if (url) localStorage.setItem('run_sheet_url', url);
+      else { localStorage.removeItem('run_sheet_url'); document.getElementById('sheetUrlInput').value = DEFAULT_SHEET_URL; }
       closeSettings();
-      alert('URL Google Sheet aggiornato!');
+      alert('URL salvato!');
     }
-
     function showScreen(id) {
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
       document.getElementById(id).classList.add('active');
     }
+    function updateRpeLabel(v) { document.getElementById('rpeLabel').textContent = RPE_LABELS[v] || `${v}/10`; }
 
-    function updateRpeLabel(val) {
-      document.getElementById('rpeLabel').textContent = RPE_DESCRIPTIONS[val] || `${val} / 10`;
-    }
-
-    // --- AUDIO & SINTESI VOCALE ---
     function speak(text, interrupt = true) {
       if (!('speechSynthesis' in window)) return;
       if (interrupt) window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'it-IT';
-      utterance.rate = 1.03;
-      utterance.pitch = 1.0;
-      window.speechSynthesis.speak(utterance);
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = 'it-IT'; u.rate = 1.03;
+      window.speechSynthesis.speak(u);
     }
 
-    function playBeep(freq = 880, duration = 0.18, doubleBeep = false) {
+    function playBeep(freq = 880, dur = 0.18, dbl = false) {
       try {
         const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = 'sine';
-        osc.frequency.value = freq;
-        osc.connect(gain);
-        gain.connect(ctx.destination);
+        const osc = ctx.createOscillator(), gain = ctx.createGain();
+        osc.type = 'sine'; osc.frequency.value = freq;
+        osc.connect(gain); gain.connect(ctx.destination);
         osc.start();
-        gain.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + duration);
-        osc.stop(ctx.currentTime + duration);
-
-        if (doubleBeep) {
-          setTimeout(() => playBeep(freq * 1.25, duration, false), 220);
-        }
+        gain.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + dur);
+        osc.stop(ctx.currentTime + dur);
+        if (dbl) setTimeout(() => playBeep(freq * 1.25, dur, false), 220);
       } catch (e) {}
     }
 
@@ -876,271 +354,169 @@
       setTimeout(() => speak('Un chilometro e mezzo, passo cinque e cinquanta.'), 450);
     }
 
-    function formatDistanceItalian(meters) {
-      const halfKms = Math.round(meters / 500);
-      if (halfKms === 1) return '500 metri';
-      const km = Math.floor(halfKms / 2);
-      const isHalf = halfKms % 2 === 1;
-      const kmWord = km === 1 ? 'un chilometro' : `${km} chilometri`;
-      return isHalf ? `${kmWord} e mezzo` : kmWord;
+    function formatDistanceItalian(m) {
+      const h = Math.round(m / 500);
+      if (h === 1) return '500 metri';
+      const km = Math.floor(h / 2), half = h % 2 === 1;
+      const w = km === 1 ? 'un chilometro' : `${km} chilometri`;
+      return half ? `${w} e mezzo` : w;
     }
 
-    function formatPaceItalian(paceStr) {
-      if (!paceStr || paceStr === '--:--') return '';
-      const [mStr, sStr] = paceStr.split(':');
-      const m = parseInt(mStr, 10);
-      const s = parseInt(sStr, 10);
+    function formatPaceItalian(p) {
+      if (!p || p === '--:--') return '';
+      const [ms, ss] = p.split(':');
+      const m = parseInt(ms, 10), s = parseInt(ss, 10);
       if (s === 0) return `passo ${m} minuti`;
-      const secSpoken = s < 10 ? `zero ${s}` : `${s}`;
-      return `passo ${m} e ${secSpoken}`;
+      return `passo ${m} e ${s < 10 ? 'zero ' + s : s}`;
     }
 
-    // --- WAKE LOCK ---
     async function requestWakeLock() {
-      try {
-        if ('wakeLock' in navigator) {
-          wakeLock = await navigator.wakeLock.request('screen');
-        }
-      } catch (err) {}
+      try { if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {}
     }
-
     function releaseWakeLock() {
-      if (wakeLock !== null) {
-        wakeLock.release().catch(() => {});
-        wakeLock = null;
-      }
+      if (wakeLock) { wakeLock.release().catch(() => {}); wakeLock = null; }
     }
 
-    // --- CONTO ALLA ROVESCIA 5 SECONDI ---
     function initiateCountdown() {
       requestWakeLock();
-      // Pre-avvia GPS durante i 5 secondi per avere fix immediato al VIA
       startGPS();
-
       let count = 5;
-      const overlay = document.getElementById('countdownOverlay');
-      const numEl = document.getElementById('countdownDisplay');
-      numEl.textContent = count;
-      overlay.classList.add('open');
-
+      const ov = document.getElementById('countdownOverlay'), num = document.getElementById('countdownDisplay');
+      num.textContent = count;
+      ov.classList.add('open');
       playBeep(660, 0.12, false);
       speak('Cinque', true);
 
       countdownTimer = setInterval(() => {
         count--;
         if (count > 0) {
-          numEl.textContent = count;
+          num.textContent = count;
           playBeep(660, 0.12, false);
           if (count <= 3) speak(`${count}`, true);
         } else {
-          clearInterval(countdownTimer);
-          countdownTimer = null;
-          overlay.classList.remove('open');
+          clearInterval(countdownTimer); countdownTimer = null;
+          ov.classList.remove('open');
           startWorkout();
         }
       }, 1000);
     }
 
     function skipCountdown() {
-      if (countdownTimer) {
-        clearInterval(countdownTimer);
-        countdownTimer = null;
-      }
+      if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null; }
       document.getElementById('countdownOverlay').classList.remove('open');
       startWorkout();
     }
 
-    // --- AVVIO CORSA EFFETTIVA ---
     function startWorkout() {
-      isRunning = true;
-      isPaused = false;
-      justResumed = false;
-      startTimeMs = Date.now();
-      pausedTotalMs = 0;
-      lastMinuteSpoken = 0;
-      lastIntervalSpoken = 0;
-      totalGoalReached = false;
-
-      routePoints = [];
-      trackHistory = [{ distMeters: 0, elapsedSec: 0 }];
-      rawGpsBuffer = [];
-      lastPointTimeMs = 0;
-      totalDistanceMeters = 0;
-      last500mStep = 0;
-      last500mDistMeters = 0;
-      last500mElapsedSec = 0;
-      kmSplits = [];
-      lastKmDistMeters = 0;
-      lastKmElapsedSec = 0;
-      distanceGoalReached = false;
-      autoCenter = true;
+      isRunning = true; isPaused = false; justResumed = false;
+      startTimeMs = Date.now(); pausedTotalMs = 0;
+      lastMinuteSpoken = 0; lastIntervalSpoken = 0; totalGoalReached = false;
+      routePoints = []; trackHistory = [{ distMeters: 0, elapsedSec: 0 }]; rawGpsBuffer = [];
+      lastPointTimeMs = 0; totalDistanceMeters = 0;
+      last500mStep = 0; last500mDistMeters = 0; last500mElapsedSec = 0;
+      kmSplits = []; lastKmDistMeters = 0; lastKmElapsedSec = 0;
+      distanceGoalReached = false; autoCenter = true;
 
       const now = new Date();
       sessionDateStr = now.toLocaleDateString('it-IT');
       sessionStartStr = now.toTimeString().slice(0, 5);
       sessionIsoStart = now.toISOString();
 
-      // Configurazione Virtual Pacer
       const pMin = parseInt(document.getElementById('pacerMin').value) || 0;
       const pSec = parseInt(document.getElementById('pacerSec').value) || 0;
       targetPaceSecPerKm = (pMin * 60) + pSec;
-      lastPacerAlertSec = 0;
-      wasBehindPacer = false;
+      lastPacerAlertSec = 0; wasBehindPacer = false;
 
-      const pacerBanner = document.getElementById('pacerBanner');
+      const pb = document.getElementById('pacerBanner');
       if (targetPaceSecPerKm > 0) {
-        pacerBanner.classList.add('active');
-        pacerBanner.classList.remove('pacer-ahead', 'pacer-behind');
-        document.getElementById('pacerTargetLbl').textContent =
-          `Target: ${pMin}:${String(pSec).padStart(2, '0')}/km`;
+        pb.classList.add('active'); pb.classList.remove('pacer-ahead', 'pacer-behind');
+        document.getElementById('pacerTargetLbl').textContent = `Target: ${pMin}:${String(pSec).padStart(2, '0')}/km`;
         document.getElementById('pacerDeltaLbl').textContent = 'Calcolo ritmo...';
-      } else {
-        pacerBanner.classList.remove('active');
-      }
+      } else { pb.classList.remove('active'); }
 
       if (currentMode === 'time') {
-        const totMin = parseInt(document.getElementById('totalMinutes').value) || 30;
-        const intMin = parseInt(document.getElementById('intervalMin').value) || 0;
-        const intSec = parseInt(document.getElementById('intervalSec').value) || 0;
-        totalTargetSeconds = totMin * 60;
-        intervalStepSeconds = (intMin * 60) + intSec;
-        document.getElementById('runBanner').textContent =
-          intervalStepSeconds > 0
-            ? `Obiettivo: ${totMin} min • Intervalli ogni ${intMin}m ${intSec}s`
-            : `Obiettivo: ${totMin} minuti`;
+        const tm = parseInt(document.getElementById('totalMinutes').value) || 30;
+        const im = parseInt(document.getElementById('intervalMin').value) || 0;
+        const is = parseInt(document.getElementById('intervalSec').value) || 0;
+        totalTargetSeconds = tm * 60;
+        intervalStepSeconds = (im * 60) + is;
+        document.getElementById('runBanner').textContent = intervalStepSeconds > 0 ? `Obiettivo: ${tm} min • Intervalli ${im}m ${is}s` : `Obiettivo: ${tm} minuti`;
       } else {
-        const tKm = parseFloat(document.getElementById('targetKm').value) || 0;
-        targetDistanceMeters = tKm * 1000;
-        document.getElementById('runBanner').textContent =
-          tKm > 0 ? `Obiettivo: ${tKm} km (avviso ogni 500m)` : `Corsa libera (avviso ogni 500m)`;
+        const tk = parseFloat(document.getElementById('targetKm').value) || 0;
+        targetDistanceMeters = tk * 1000;
+        document.getElementById('runBanner').textContent = tk > 0 ? `Obiettivo: ${tk} km (avviso ogni 500m)` : `Corsa libera (avviso ogni 500m)`;
       }
 
       showScreen('screenRun');
       initLiveMap();
-
       playBeep(980, 0.2, false);
       speak('Via! Allenamento avviato', true);
-
       timerInterval = setInterval(updateLoop, 500);
     }
 
     function getCurrentElapsedSec() {
-      const refNow = isPaused ? pauseStartMs : Date.now();
-      return Math.max(0, Math.floor((refNow - startTimeMs - pausedTotalMs) / 1000));
+      const ref = isPaused ? pauseStartMs : Date.now();
+      return Math.max(0, Math.floor((ref - startTimeMs - pausedTotalMs) / 1000));
     }
 
-    // --- LOOP TEMPO E AVVISI ---
     function updateLoop() {
       if (!isRunning || isPaused) return;
+      const sec = getCurrentElapsedSec();
+      document.getElementById('dispTime').textContent = formatMMSS(sec);
+      document.getElementById('dispPace').textContent = calculatePace(sec, totalDistanceMeters);
+      updateVirtualPacer(sec);
 
-      const elapsedSec = getCurrentElapsedSec();
-
-      document.getElementById('dispTime').textContent = formatMMSS(elapsedSec);
-      document.getElementById('dispPace').textContent = calculatePace(elapsedSec, totalDistanceMeters);
-      updateVirtualPacer(elapsedSec);
-
-      // Logica avvisi Corsa a Tempo
-      if (currentMode === 'time' && elapsedSec > 0) {
-        const currentMin = Math.floor(elapsedSec / 60);
-        const minuteTriggered = currentMin > lastMinuteSpoken;
-
-        let intervalTriggered = false;
-        let currentIntIndex = 0;
+      if (currentMode === 'time' && sec > 0) {
+        const curMin = Math.floor(sec / 60);
+        const minTrig = curMin > lastMinuteSpoken;
+        let intTrig = false, curInt = 0;
         if (intervalStepSeconds > 0) {
-          currentIntIndex = Math.floor(elapsedSec / intervalStepSeconds);
-          intervalTriggered = currentIntIndex > lastIntervalSpoken;
+          curInt = Math.floor(sec / intervalStepSeconds);
+          intTrig = curInt > lastIntervalSpoken;
         }
-
-        if (minuteTriggered || intervalTriggered) {
+        if (minTrig || intTrig) {
           let msgs = [];
-          if (minuteTriggered) {
-            lastMinuteSpoken = currentMin;
-            msgs.push(currentMin === 1 ? '1 minuto' : `${currentMin} minuti`);
-          }
-          if (intervalTriggered) {
-            lastIntervalSpoken = currentIntIndex;
-            playBeep(980, 0.16, true);
-            msgs.push(`Cambio intervallo, numero ${currentIntIndex}`);
-          }
-          if (elapsedSec >= totalTargetSeconds && !totalGoalReached) {
-            totalGoalReached = true;
-            playBeep(1100, 0.25, true);
-            msgs.push('Tempo totale completato!');
-          }
+          if (minTrig) { lastMinuteSpoken = curMin; msgs.push(curMin === 1 ? '1 minuto' : `${curMin} minuti`); }
+          if (intTrig) { lastIntervalSpoken = curInt; playBeep(980, 0.16, true); msgs.push(`Cambio intervallo, numero ${curInt}`); }
+          if (sec >= totalTargetSeconds && !totalGoalReached) { totalGoalReached = true; playBeep(1100, 0.25, true); msgs.push('Tempo totale completato!'); }
           speak(msgs.join('. '), false);
         }
       }
     }
 
-    // --- VIRTUAL PACER LIVE ---
-    function updateVirtualPacer(elapsedSec) {
+    function updateVirtualPacer(sec) {
       if (targetPaceSecPerKm <= 0 || totalDistanceMeters < 100) return;
-
-      const expectedSec = (totalDistanceMeters / 1000) * targetPaceSecPerKm;
-      const diffSec = Math.round(elapsedSec - expectedSec); // < 0 = in anticipo, > 0 = in ritardo
-      const banner = document.getElementById('pacerBanner');
-      const deltaLbl = document.getElementById('pacerDeltaLbl');
-
-      banner.classList.remove('pacer-ahead', 'pacer-behind');
-
-      if (diffSec <= 0) {
-        banner.classList.add('pacer-ahead');
-        deltaLbl.textContent = diffSec === 0 ? 'Perfetto (0s)' : `${diffSec}s in anticipo`;
-        if (wasBehindPacer && (elapsedSec - lastPacerAlertSec) >= 45) {
-          wasBehindPacer = false;
-          lastPacerAlertSec = elapsedSec;
-          speak('Sei tornato in linea con il passo obiettivo', false);
-        }
+      const exp = (totalDistanceMeters / 1000) * targetPaceSecPerKm;
+      const diff = Math.round(sec - exp);
+      const b = document.getElementById('pacerBanner'), d = document.getElementById('pacerDeltaLbl');
+      b.classList.remove('pacer-ahead', 'pacer-behind');
+      if (diff <= 0) {
+        b.classList.add('pacer-ahead');
+        d.textContent = diff === 0 ? 'Perfetto (0s)' : `${diff}s in anticipo`;
+        if (wasBehindPacer && (sec - lastPacerAlertSec) >= 45) { wasBehindPacer = false; lastPacerAlertSec = sec; speak('Sei tornato in linea con il passo obiettivo', false); }
       } else {
-        banner.classList.add('pacer-behind');
-        deltaLbl.textContent = `+${diffSec}s in ritardo`;
-        if (diffSec > 10 && (elapsedSec - lastPacerAlertSec) >= 60) {
-          wasBehindPacer = true;
-          lastPacerAlertSec = elapsedSec;
-          speak(`Sei in ritardo di ${diffSec} secondi sul passo obiettivo`, false);
-        }
+        b.classList.add('pacer-behind');
+        d.textContent = `+${diff}s in ritardo`;
+        if (diff > 10 && (sec - lastPacerAlertSec) >= 60) { wasBehindPacer = true; lastPacerAlertSec = sec; speak(`Sei in ritardo di ${diff} secondi sul passo obiettivo`, false); }
       }
     }
 
-    // --- ROLLING PACE (ULTIMI 200 METRI) ---
-    function computeRollingPace(currentDist, currentSec) {
-      if (currentDist < 50 || trackHistory.length < 2) return '--:--';
-
-      // Cerca il punto più recente distante almeno 200m dalla posizione attuale
-      let refPoint = trackHistory[0];
+    function computeRollingPace(curDist, curSec) {
+      if (curDist < 50 || trackHistory.length < 2) return '--:--';
+      let ref = trackHistory[0];
       for (let i = trackHistory.length - 1; i >= 0; i--) {
-        if ((currentDist - trackHistory[i].distMeters) >= 200) {
-          refPoint = trackHistory[i];
-          break;
-        }
+        if ((curDist - trackHistory[i].distMeters) >= 200) { ref = trackHistory[i]; break; }
       }
-
-      const dDist = currentDist - refPoint.distMeters;
-      const dTime = currentSec - refPoint.elapsedSec;
-      if (dDist < 40 || dTime <= 0) return '--:--';
-      return calculatePace(dTime, dDist);
+      const dd = curDist - ref.distMeters, dt = curSec - ref.elapsedSec;
+      return (dd < 40 || dt <= 0) ? '--:--' : calculatePace(dt, dd);
     }
 
-    // --- MAPPA E TRACCIAMENTO GPS AD ALTA PRECISIONE ---
     function initLiveMap() {
-      if (map) {
-        map.remove();
-      }
+      if (map) map.remove();
       map = L.map('map', { zoomControl: false }).setView([43.8333, 11.1997], 16);
-      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap',
-        maxZoom: 19
-      }).addTo(map);
-
+      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap', maxZoom: 19 }).addTo(map);
       polyline = L.polyline([], { color: '#00e676', weight: 5, opacity: 0.95 }).addTo(map);
-      userMarker = L.circleMarker([43.8333, 11.1997], {
-        radius: 7,
-        fillColor: '#38bdf8',
-        color: '#ffffff',
-        weight: 2,
-        fillOpacity: 1
-      }).addTo(map);
-
+      userMarker = L.circleMarker([43.8333, 11.1997], { radius: 7, fillColor: '#38bdf8', color: '#fff', weight: 2, fillOpacity: 1 }).addTo(map);
       map.on('dragstart', () => { autoCenter = false; });
     }
 
@@ -1154,146 +530,217 @@
 
     function getSmoothedCoordinate(lat, lng, acc) {
       rawGpsBuffer.push({ lat, lng, acc });
-      if (rawGpsBuffer.length > GPS_CONFIG.smoothingWindow) {
-        rawGpsBuffer.shift();
+      if (rawGpsBuffer.length > GPS_CONFIG.smoothingWindow) rawGpsBuffer.shift();
+      let sw = 0, slat = 0, slng = 0;
+      for (const p of rawGpsBuffer) {
+        const w = 1 / Math.max(p.acc, 3);
+        sw += w; slat += p.lat * w; slng += p.lng * w;
       }
-
-      let sumWeight = 0;
-      let sumLat = 0;
-      let sumLng = 0;
-
-      for (const pt of rawGpsBuffer) {
-        const weight = 1 / Math.max(pt.acc, 3);
-        sumWeight += weight;
-        sumLat += pt.lat * weight;
-        sumLng += pt.lng * weight;
-      }
-
-      return [sumLat / sumWeight, sumLng / sumWeight];
+      return [slat / sw, slng / sw];
     }
 
     function startGPS() {
       if (!('geolocation' in navigator)) return;
       if (watchId !== null) navigator.geolocation.clearWatch(watchId);
-
       watchId = navigator.geolocation.watchPosition(
         (pos) => {
           const { latitude, longitude, accuracy, altitude, speed } = pos.coords;
           const nowMs = pos.timestamp || Date.now();
-
           if (accuracy) updateGpsIndicator(accuracy);
           if (!isRunning || isPaused) return;
 
-          const maxAccAllowed = routePoints.length === 0
-            ? GPS_CONFIG.maxFirstAccuracy
-            : GPS_CONFIG.maxTrackingAccuracy;
-          if (!accuracy || accuracy > maxAccAllowed) return;
+          const maxAcc = routePoints.length === 0 ? GPS_CONFIG.maxFirstAccuracy : GPS_CONFIG.maxTrackingAccuracy;
+          if (!accuracy || accuracy > maxAcc) return;
+          if (routePoints.length > 0 && speed !== null && !isNaN(speed) && speed < GPS_CONFIG.minHardwareSpeed) return;
+          if (justResumed) rawGpsBuffer = [];
 
-          if (routePoints.length > 0 && speed !== null && !isNaN(speed) && speed < GPS_CONFIG.minHardwareSpeed) {
-            return;
-          }
-
-          if (justResumed) {
-            rawGpsBuffer = [];
-          }
-
-          const smoothLatLng = getSmoothedCoordinate(latitude, longitude, accuracy);
-          const elapsedSec = getCurrentElapsedSec();
+          const sPt = getSmoothedCoordinate(latitude, longitude, accuracy);
+          const sec = getCurrentElapsedSec();
 
           if (routePoints.length === 0 || justResumed) {
-            routePoints.push({
-              lat: smoothLatLng[0],
-              lng: smoothLatLng[1],
-              ele: altitude !== null ? Math.round(altitude) : null,
-              timeIso: new Date().toISOString()
-            });
-            lastPointTimeMs = nowMs;
-            justResumed = false;
-            userMarker.setLatLng(smoothLatLng);
-            polyline.addLatLng(smoothLatLng);
-            if (map) map.setView(smoothLatLng, 17);
+            routePoints.push({ lat: sPt[0], lng: sPt[1], ele: altitude !== null ? Math.round(altitude) : null, timeIso: new Date().toISOString() });
+            lastPointTimeMs = nowMs; justResumed = false;
+            userMarker.setLatLng(sPt); polyline.addLatLng(sPt);
+            if (map) map.setView(sPt, 17);
             return;
           }
 
-          const prevPoint = routePoints[routePoints.length - 1];
-          const distDelta = haversineMeters(prevPoint.lat, prevPoint.lng, smoothLatLng[0], smoothLatLng[1]);
-          const dtSec = Math.max(0.5, (nowMs - lastPointTimeMs) / 1000);
-          const impliedSpeed = distDelta / dtSec;
+          const prev = routePoints[routePoints.length - 1];
+          const delta = haversineMeters(prev.lat, prev.lng, sPt[0], sPt[1]);
+          const dt = Math.max(0.5, (nowMs - lastPointTimeMs) / 1000);
+          if (delta < Math.max(GPS_CONFIG.minStepMeters, accuracy * 0.45) || (delta / dt) > GPS_CONFIG.maxPlausibleSpeed) return;
 
-          const dynamicMinStep = Math.max(GPS_CONFIG.minStepMeters, accuracy * 0.45);
-          if (distDelta < dynamicMinStep || impliedSpeed > GPS_CONFIG.maxPlausibleSpeed) {
-            return;
-          }
+          routePoints.push({ lat: sPt[0], lng: sPt[1], ele: altitude !== null ? Math.round(altitude) : null, timeIso: new Date().toISOString() });
+          totalDistanceMeters += delta; lastPointTimeMs = nowMs;
+          trackHistory.push({ distMeters: totalDistanceMeters, elapsedSec: sec });
 
-          routePoints.push({
-            lat: smoothLatLng[0],
-            lng: smoothLatLng[1],
-            ele: altitude !== null ? Math.round(altitude) : null,
-            timeIso: new Date().toISOString()
-          });
-          totalDistanceMeters += distDelta;
-          lastPointTimeMs = nowMs;
-
-          trackHistory.push({ distMeters: totalDistanceMeters, elapsedSec });
-
-          userMarker.setLatLng(smoothLatLng);
-          polyline.addLatLng(smoothLatLng);
-          if (autoCenter && map) map.setView(smoothLatLng);
+          userMarker.setLatLng(sPt); polyline.addLatLng(sPt);
+          if (autoCenter && map) map.setView(sPt);
 
           document.getElementById('dispDist').textContent = (totalDistanceMeters / 1000).toFixed(2);
-          document.getElementById('dispRollingPace').textContent = computeRollingPace(totalDistanceMeters, elapsedSec);
+          document.getElementById('dispRollingPace').textContent = computeRollingPace(totalDistanceMeters, sec);
 
-          // Controllo parziali ogni 1000m (Splits)
-          const completedKms = Math.floor(totalDistanceMeters / 1000);
-          if (completedKms > kmSplits.length) {
-            const kmSplitSec = Math.max(1, elapsedSec - lastKmElapsedSec);
-            const kmPaceStr = formatMMSS(kmSplitSec);
-            kmSplits.push({
-              label: `Km ${completedKms}`,
-              splitSec: kmSplitSec,
-              pace: `${kmPaceStr} /km`,
-              cumulative: formatMMSS(elapsedSec)
-            });
-            lastKmDistMeters = totalDistanceMeters;
-            lastKmElapsedSec = elapsedSec;
-
-            // In modalità A Tempo, annuncia il passaggio al chilometro con relativo passo
-            if (currentMode === 'time') {
-              const kmSpoken = completedKms === 1 ? 'Un chilometro' : `${completedKms} chilometri`;
-              speak(`${kmSpoken}, ${formatPaceItalian(kmPaceStr)}`, false);
-            }
+          const doneKms = Math.floor(totalDistanceMeters / 1000);
+          if (doneKms > kmSplits.length) {
+            const kSec = Math.max(1, sec - lastKmElapsedSec);
+            const kPace = formatMMSS(kSec);
+            kmSplits.push({ label: `Km ${doneKms}`, pace: `${kPace} /km`, cumulative: formatMMSS(sec) });
+            lastKmDistMeters = totalDistanceMeters; lastKmElapsedSec = sec;
+            if (currentMode === 'time') speak(`${doneKms === 1 ? 'Un chilometro' : doneKms + ' chilometri'}, ${formatPaceItalian(kPace)}`, false);
           }
 
-          // Controllo soglie ogni 500m per Corsa a Chilometraggio
           if (currentMode === 'distance') {
-            const current500Step = Math.floor(totalDistanceMeters / 500);
-            if (current500Step > last500mStep) {
-              last500mStep = current500Step;
-              const spokenMeters = current500Step * 500;
-
-              const split500Sec = Math.max(1, elapsedSec - last500mElapsedSec);
-              const split500Dist = Math.max(1, totalDistanceMeters - last500mDistMeters);
-              const split500Pace = calculatePace(split500Sec, split500Dist);
-              last500mElapsedSec = elapsedSec;
-              last500mDistMeters = totalDistanceMeters;
-
-              let msg = `${formatDistanceItalian(spokenMeters)}, ${formatPaceItalian(split500Pace)}`;
-
+            const step = Math.floor(totalDistanceMeters / 500);
+            if (step > last500mStep) {
+              last500mStep = step;
+              const sSec = Math.max(1, sec - last500mElapsedSec);
+              const sDist = Math.max(1, totalDistanceMeters - last500mDistMeters);
+              const sPace = calculatePace(sSec, sDist);
+              last500mElapsedSec = sec; last500mDistMeters = totalDistanceMeters;
+              let msg = `${formatDistanceItalian(step * 500)}, ${formatPaceItalian(sPace)}`;
               if (targetDistanceMeters > 0 && totalDistanceMeters >= targetDistanceMeters && !distanceGoalReached) {
-                distanceGoalReached = true;
-                playBeep(1100, 0.25, true);
-                msg += '. Obiettivo chilometraggio raggiunto!';
-              } else {
-                playBeep(880, 0.15, false);
-              }
+                distanceGoalReached = true; playBeep(1100, 0.25, true); msg += '. Obiettivo raggiunto!';
+              } else { playBeep(880, 0.15, false); }
               speak(msg, false);
             }
           }
         },
-        () => {
-          document.getElementById('gpsDot').classList.remove('active', 'warn');
-          document.getElementById('gpsAccBadge').textContent = 'GPS OFF';
-        },
-        {
-          enableHighAccuracy: true,
-          maximum
+        () => { document.getElementById('gpsDot').classList.remove('active', 'warn'); document.getElementById('gpsAccBadge').textContent = 'GPS OFF'; },
+        { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
+      );
+    }
+
+    function haversineMeters(lat1, lon1, lat2, lon2) {
+      const R = 6371000, rad = d => d * Math.PI / 180;
+      const dLat = rad(lat2 - lat1), dLon = rad(lon2 - lon1);
+      const a = Math.sin(dLat / 2) ** 2 + Math.cos(rad(lat1)) * Math.cos(rad(lat2)) * Math.sin(dLon / 2) ** 2;
+      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    }
+
+    function togglePause() {
+      isPaused = !isPaused;
+      const btn = document.getElementById('btnPause');
+      if (isPaused) { pauseStartMs = Date.now(); btn.textContent = '▶ Riprendi'; document.getElementById('runBanner').textContent = 'In pausa'; speak('Pausa', true); }
+      else { pausedTotalMs += Date.now() - pauseStartMs; justResumed = true; btn.textContent = '⏸ Pausa'; document.getElementById('runBanner').textContent = 'Corsa in corso'; speak('Ripresa', true); }
+    }
+
+    function finishWorkout() {
+      if (!confirm('Vuoi terminare l\'allenamento?')) return;
+      isRunning = false; clearInterval(timerInterval);
+      if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+      releaseWakeLock();
+
+      sessionEndStr = new Date().toTimeString().slice(0, 5);
+      const fSec = Math.max(1, getCurrentElapsedSec());
+      const fKm = (totalDistanceMeters / 1000).toFixed(2);
+      const fPace = calculatePace(fSec, totalDistanceMeters);
+
+      document.getElementById('sumTime').textContent = formatMMSS(fSec);
+      document.getElementById('sumDist').textContent = fKm;
+      document.getElementById('sumPace').textContent = fPace;
+
+      const allSplits = [...kmSplits];
+      const rem = totalDistanceMeters - lastKmDistMeters;
+      if (rem >= 50) {
+        const rSec = Math.max(1, fSec - lastKmElapsedSec);
+        allSplits.push({ label: `Km ${kmSplits.length + 1} (${(rem / 1000).toFixed(2)} km)`, pace: `${calculatePace(rSec, rem)} /km`, cumulative: formatMMSS(fSec) });
+      }
+      renderSplitsTable(allSplits);
+      document.getElementById('rpeSlider').value = 6; updateRpeLabel(6);
+      speak(`Allenamento terminato. ${fKm.replace('.', ' virgola ')} chilometri.`, true);
+      showScreen('screenSummary');
+
+      setTimeout(() => {
+        if (summaryMap) summaryMap.remove();
+        summaryMap = L.map('summaryMap', { zoomControl: false });
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap', maxZoom: 19 }).addTo(summaryMap);
+        const pts = routePoints.map(p => [p.lat, p.lng]);
+        if (pts.length > 1) { const l = L.polyline(pts, { color: '#00e676', weight: 5 }).addTo(summaryMap); summaryMap.fitBounds(l.getBounds(), { padding: [20, 20] }); }
+        else if (pts.length === 1) { summaryMap.setView(pts[0], 16); L.circleMarker(pts[0], { radius: 7, color: '#00e676' }).addTo(summaryMap); }
+        else { summaryMap.setView([43.8333, 11.1997], 13); }
+      }, 150);
+    }
+
+    function renderSplitsTable(splits) {
+      const tb = document.getElementById('splitsTableBody');
+      tb.innerHTML = splits.length ? '' : '<tr><td colspan="3" style="color:var(--muted);">Distanza inferiore a 50 m</td></tr>';
+      for (const s of splits) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td><strong>${s.label}</strong></td><td style="color:var(--accent);font-weight:700;">${s.pace}</td><td style="color:var(--muted);">${s.cumulative}</td>`;
+        tb.appendChild(tr);
+      }
+    }
+
+    function downloadGPX() {
+      if (!routePoints.length) { alert('Nessuna coordinata GPS registrata.'); return; }
+      const pts = routePoints.map(p => `      <trkpt lat="${p.lat.toFixed(6)}" lon="${p.lng.toFixed(6)}">${p.ele !== null ? `<ele>${p.ele}</ele>` : ''}<time>${p.timeIso}</time></trkpt>`).join('\n');
+      const gpx = `<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="Run Tracker" xmlns="http://www.topografix.com/GPX/1/1">\n  <metadata><name>Corsa ${sessionDateStr}</name><time>${sessionIsoStart || new Date().toISOString()}</time></metadata>\n  <trk><name>Corsa ${sessionDateStr}</name><type>running</type><trkseg>\n${pts}\n  </trkseg></trk>\n</gpx>`;
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([gpx], { type: 'application/gpx+xml' }));
+      a.download = `corsa_${sessionDateStr.replace(/\//g, '-')}_${sessionStartStr.replace(/:/g, '-')}.gpx`;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    }
+
+    async function saveToGoogleSheet() {
+      const url = localStorage.getItem('run_sheet_url') || DEFAULT_SHEET_URL;
+      const btn = document.getElementById('btnSaveSheet');
+      btn.disabled = true; btn.textContent = 'Salvataggio in corso...';
+
+      let targetDesc = currentMode === 'time'
+        ? `${document.getElementById('totalMinutes').value} min (int: ${document.getElementById('intervalMin').value}m ${document.getElementById('intervalSec').value}s)`
+        : (document.getElementById('targetKm').value > 0 ? `Obiettivo ${document.getElementById('targetKm').value} km` : 'Corsa libera 500m');
+      if (targetPaceSecPerKm > 0) targetDesc += ` | Pacer ${Math.floor(targetPaceSecPerKm / 60)}:${String(targetPaceSecPerKm % 60).padStart(2, '0')}/km`;
+
+      const splitsTxt = Array.from(document.querySelectorAll('#splitsTableBody tr'))
+        .map(r => { const c = r.querySelectorAll('td'); return c.length === 3 ? `${c[0].textContent}: ${c[1].textContent}` : ''; })
+        .filter(Boolean).join(' | ');
+
+      const payload = {
+        date: sessionDateStr, startTime: sessionStartStr, endTime: sessionEndStr,
+        mode: currentMode === 'time' ? 'A Tempo' : 'A Chilometraggio',
+        distanceKm: document.getElementById('sumDist').textContent,
+        duration: document.getElementById('sumTime').textContent,
+        avgPace: document.getElementById('sumPace').textContent,
+        targetInfo: targetDesc,
+        notes: document.getElementById('runNotes').value.trim(),
+        routeJson: JSON.stringify(routePoints.map(p => [Number(p.lat.toFixed(5)), Number(p.lng.toFixed(5))])),
+        splits: splitsTxt,
+        rpe: `${document.getElementById('rpeSlider').value}/10`
+      };
+
+      const hist = JSON.parse(localStorage.getItem('run_history_backup') || '[]');
+      hist.push(payload);
+      localStorage.setItem('run_history_backup', JSON.stringify(hist));
+
+      try {
+        await fetch(url, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
+        alert('Allenamento salvato su Google Sheet!');
+        resetToHome();
+      } catch (e) {
+        alert('Errore di rete, backup salvato localmente sul telefono.');
+      } finally {
+        btn.disabled = false; btn.textContent = '☁️ SALVA SU GOOGLE SHEET';
+      }
+    }
+
+    function resetToHome() {
+      document.getElementById('runNotes').value = '';
+      ['dispTime', 'dispDist'].forEach((id, i) => document.getElementById(id).textContent = i ? '0.00' : '00:00');
+      document.getElementById('dispPace').textContent = '--:--';
+      document.getElementById('dispRollingPace').textContent = '--:--';
+      showScreen('screenHome');
+    }
+
+    function formatMMSS(sec) {
+      const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s = sec % 60;
+      return h > 0 ? `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}` : `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    }
+
+    function calculatePace(sec, meters) {
+      if (meters < 40) return '--:--';
+      const p = Math.round(sec / (meters / 1000));
+      return `${Math.floor(p / 60)}:${String(p % 60).padStart(2, '0')}`;
+    }
+  </script>
+</body>
+</html>
