@@ -454,10 +454,10 @@
   <div class="modal-overlay" id="settingsModal">
     <div class="modal-card">
       <h3 style="margin-bottom:8px;">Collegamento Google Drive</h3>
-      <p class="hint" style="margin-bottom:12px;">Incolla l'URL dell'app web ottenuto da Google Apps Script. Verrà salvato solo su questo dispositivo.</p>
+      <p class="hint" style="margin-bottom:12px;">L'URL predefinito è già configurato nel codice. Modificalo qui solo se aggiorni il deployment di Google Apps Script.</p>
       <input type="url" id="sheetUrlInput" placeholder="https://script.google.com/macros/s/.../exec" />
       <div class="row-2" style="margin-top:14px;">
-        <button class="btn-secondary" onclick="closeSettings()">Annulla</button>
+        <button class="btn-secondary" onclick="closeSettings()">Chiudi</button>
         <button class="btn-primary" style="padding:12px;" onclick="saveSettings()">Salva URL</button>
       </div>
     </div>
@@ -467,6 +467,9 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <script>
+    // --- URL GOOGLE APPS SCRIPT PREDEFINITO ---
+    const DEFAULT_SHEET_URL = 'https://script.google.com/macros/s/AKfycbyt9Q9o9M8uvkyeYcRLsQ_a51RGcnrTVDKP__vA05DJsGyMeNwOnHryey39dmzoPZ_Hjg/exec';
+
     // --- STATO GLOBALE ---
     let currentMode = 'time'; // 'time' | 'distance'
     let isRunning = false;
@@ -506,7 +509,7 @@
 
     // --- INIZIALIZZAZIONE ---
     window.addEventListener('load', () => {
-      const savedUrl = localStorage.getItem('run_sheet_url') || '';
+      const savedUrl = localStorage.getItem('run_sheet_url') || DEFAULT_SHEET_URL;
       document.getElementById('sheetUrlInput').value = savedUrl;
 
       if ('geolocation' in navigator) {
@@ -542,9 +545,14 @@
 
     function saveSettings() {
       const url = document.getElementById('sheetUrlInput').value.trim();
-      localStorage.setItem('run_sheet_url', url);
+      if (url) {
+        localStorage.setItem('run_sheet_url', url);
+      } else {
+        localStorage.removeItem('run_sheet_url');
+        document.getElementById('sheetUrlInput').value = DEFAULT_SHEET_URL;
+      }
       closeSettings();
-      alert('URL Google Sheet salvato!');
+      alert('URL Google Sheet aggiornato!');
     }
 
     function showScreen(id) {
@@ -865,12 +873,7 @@
 
     // --- SALVATAGGIO SU GOOGLE SHEETS ---
     async function saveToGoogleSheet() {
-      const url = localStorage.getItem('run_sheet_url');
-      if (!url) {
-        alert('Configura prima l\'URL di Google Apps Script dall\'icona ⚙️ in alto.');
-        openSettings();
-        return;
-      }
+      const url = localStorage.getItem('run_sheet_url') || DEFAULT_SHEET_URL;
 
       const btn = document.getElementById('btnSaveSheet');
       btn.disabled = true;
