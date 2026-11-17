@@ -19,7 +19,7 @@
     .dot-live { width: 10px; height: 10px; border-radius: 50%; background: var(--muted); flex-shrink: 0; }
     .dot-live.active { background: var(--accent); box-shadow: 0 0 10px var(--accent); }
     .dot-live.warn { background: var(--warning); box-shadow: 0 0 8px var(--warning); }
-    .gps-badge { font-size: 0.72rem; font-weight: 600; color: var(--muted); background: #0b0e14; border: 1px solid var(--card-border); padding: 2px 7px; border-radius: 6px; font-variant-numeric: tabular-nums; }
+    .gps-badge { font-size: 0.75rem; font-weight: 600; color: var(--muted); background: #0b0e14; border: 1px solid var(--card-border); padding: 3px 9px; border-radius: 8px; font-variant-numeric: tabular-nums; }
     .icon-btn { background: transparent; border: 1px solid var(--card-border); color: var(--text); padding: 8px 12px; border-radius: 10px; font-size: 0.85rem; cursor: pointer; }
     .container { flex: 1; padding: 16px; max-width: 540px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
     .screen { display: none; flex-direction: column; gap: 14px; flex: 1; }
@@ -34,7 +34,7 @@
     .field-group:first-child { margin-top: 0; }
     .field-group label { display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 6px; }
     .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    input[type="number"], input[type="url"], textarea { width: 100%; background: #0b0e14; border: 1px solid var(--card-border); color: var(--text); padding: 11px 12px; border-radius: 10px; font-size: 1rem; }
+    input[type="number"], textarea { width: 100%; background: #0b0e14; border: 1px solid var(--card-border); color: var(--text); padding: 11px 12px; border-radius: 10px; font-size: 1rem; }
     input:focus, textarea:focus { outline: none; border-color: var(--accent); }
     .hint { font-size: 0.78rem; color: var(--muted); margin-top: 5px; line-height: 1.4; }
     .btn-primary { background: var(--accent); color: #06130b; border: none; padding: 16px; border-radius: 14px; font-size: 1.05rem; font-weight: 700; cursor: pointer; width: 100%; margin-top: auto; }
@@ -66,20 +66,13 @@
     .countdown-overlay { display: none; position: fixed; inset: 0; background: rgba(11, 14, 20, 0.96); z-index: 3000; flex-direction: column; align-items: center; justify-content: center; gap: 18px; padding: 24px; text-align: center; }
     .countdown-overlay.open { display: flex; }
     .countdown-number { font-size: 6.5rem; font-weight: 900; color: var(--accent); line-height: 1; text-shadow: 0 0 30px rgba(0, 230, 118, 0.4); font-variant-numeric: tabular-nums; }
-    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 2000; align-items: center; justify-content: center; padding: 16px; }
-    .modal-overlay.open { display: flex; }
-    .modal-card { background: var(--card); border: 1px solid var(--card-border); border-radius: 16px; padding: 20px; width: 100%; max-width: 440px; }
   </style>
 </head>
 <body>
 
   <header>
-    <h1>
-      <span class="dot-live" id="gpsDot"></span>
-      RUN TRACKER
-      <span class="gps-badge" id="gpsAccBadge">GPS --</span>
-    </h1>
-    <button type="button" class="icon-btn" onclick="openSettings()">⚙️ Google Sheet</button>
+    <h1><span class="dot-live" id="gpsDot"></span> RUN TRACKER</h1>
+    <span class="gps-badge" id="gpsAccBadge">GPS --</span>
   </header>
 
   <div class="container">
@@ -239,8 +232,8 @@
         </div>
       </div>
 
-      <button type="button" class="btn-primary" id="btnSaveSheet" onclick="saveToGoogleSheet()">☁️ SALVA SU GOOGLE SHEET</button>
-      <button type="button" class="btn-gpx" onclick="downloadGPX()">📥 SCARICA FILE .GPX (Strava / Komoot)</button>
+      <button type="button" class="btn-primary" id="btnSaveSheet" onclick="saveToGoogleSheet()">☁️ SALVA SU GOOGLE SHEET + GPX</button>
+      <button type="button" class="btn-gpx" onclick="downloadGPX()">📥 SCARICA FILE .GPX SUL TELEFONO</button>
       <button type="button" class="btn-secondary" onclick="resetToHome()">Torna alla Home senza salvare</button>
     </div>
 
@@ -254,22 +247,9 @@
     <button type="button" class="icon-btn" style="margin-top:10px; padding:10px 20px;" onclick="skipCountdown()">Parti subito ▶</button>
   </div>
 
-  <!-- MODAL GOOGLE SHEET -->
-  <div class="modal-overlay" id="settingsModal">
-    <div class="modal-card">
-      <h3 style="margin-bottom:8px;">Collegamento Google Drive</h3>
-      <p class="hint" style="margin-bottom:12px;">URL predefinito già configurato. Modificalo solo se cambi deployment.</p>
-      <input type="url" id="sheetUrlInput" />
-      <div class="row-2" style="margin-top:14px;">
-        <button type="button" class="btn-secondary" onclick="closeSettings()">Chiudi</button>
-        <button type="button" class="btn-primary" style="padding:12px;" onclick="saveSettings()">Salva URL</button>
-      </div>
-    </div>
-  </div>
-
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
-    const DEFAULT_SHEET_URL = 'https://script.google.com/macros/s/AKfycbyt9Q9o9M8uvkyeYcRLsQ_a51RGcnrTVDKP__vA05DJsGyMeNwOnHryey39dmzoPZ_Hjg/exec';
+    const SHEET_URL = 'https://script.google.com/macros/s/AKfycbyt9Q9o9M8uvkyeYcRLsQ_a51RGcnrTVDKP__vA05DJsGyMeNwOnHryey39dmzoPZ_Hjg/exec';
     const GPS_CONFIG = { maxFirstAccuracy: 25, maxTrackingAccuracy: 20, smoothingWindow: 3, minStepMeters: 5.5, minHardwareSpeed: 0.55, maxPlausibleSpeed: 7.5 };
     const RPE_LABELS = { 1: '1 — Riposo attivo', 2: '2 — Molto leggero', 3: '3 — Leggero', 4: '4 — Moderato basso', 5: '5 — Moderato', 6: '6 — Impegnativo', 7: '7 — Intenso', 8: '8 — Molto intenso', 9: '9 — Quasi massimale', 10: '10 — Massimale' };
 
@@ -284,7 +264,6 @@
     let sessionDateStr = '', sessionStartStr = '', sessionEndStr = '', sessionIsoStart = '';
 
     window.addEventListener('load', () => {
-      document.getElementById('sheetUrlInput').value = localStorage.getItem('run_sheet_url') || DEFAULT_SHEET_URL;
       if ('geolocation' in navigator) {
         navigator.geolocation.getCurrentPosition(
           (pos) => {
@@ -299,7 +278,7 @@
 
     function updateGpsIndicator(acc) {
       const dot = document.getElementById('gpsDot'), badge = document.getElementById('gpsAccBadge');
-      badge.textContent = `±${Math.round(acc)}m`;
+      badge.textContent = `GPS ±${Math.round(acc)}m`;
       dot.classList.remove('active', 'warn');
       if (acc <= GPS_CONFIG.maxTrackingAccuracy) { dot.classList.add('active'); badge.style.color = '#00e676'; }
       else { dot.classList.add('warn'); badge.style.color = '#ffb74d'; }
@@ -313,15 +292,6 @@
       document.getElementById('configDist').style.display = mode === 'distance' ? 'block' : 'none';
     }
 
-    function openSettings() { document.getElementById('settingsModal').classList.add('open'); }
-    function closeSettings() { document.getElementById('settingsModal').classList.remove('open'); }
-    function saveSettings() {
-      const url = document.getElementById('sheetUrlInput').value.trim();
-      if (url) localStorage.setItem('run_sheet_url', url);
-      else { localStorage.removeItem('run_sheet_url'); document.getElementById('sheetUrlInput').value = DEFAULT_SHEET_URL; }
-      closeSettings();
-      alert('URL salvato!');
-    }
     function showScreen(id) {
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
       document.getElementById(id).classList.add('active');
@@ -671,20 +641,26 @@
       }
     }
 
-    function downloadGPX() {
-      if (!routePoints.length) { alert('Nessuna coordinata GPS registrata.'); return; }
+    function buildGPXData() {
+      if (!routePoints.length) return null;
       const pts = routePoints.map(p => `      <trkpt lat="${p.lat.toFixed(6)}" lon="${p.lng.toFixed(6)}">${p.ele !== null ? `<ele>${p.ele}</ele>` : ''}<time>${p.timeIso}</time></trkpt>`).join('\n');
-      const gpx = `<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="Run Tracker" xmlns="http://www.topografix.com/GPX/1/1">\n  <metadata><name>Corsa ${sessionDateStr}</name><time>${sessionIsoStart || new Date().toISOString()}</time></metadata>\n  <trk><name>Corsa ${sessionDateStr}</name><type>running</type><trkseg>\n${pts}\n  </trkseg></trk>\n</gpx>`;
+      const content = `<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="Run Tracker" xmlns="http://www.topografix.com/GPX/1/1">\n  <metadata><name>Corsa ${sessionDateStr}</name><time>${sessionIsoStart || new Date().toISOString()}</time></metadata>\n  <trk><name>Corsa ${sessionDateStr}</name><type>running</type><trkseg>\n${pts}\n  </trkseg></trk>\n</gpx>`;
+      const fileName = `corsa_${sessionDateStr.replace(/\//g, '-')}_${sessionStartStr.replace(/:/g, '-')}.gpx`;
+      return { fileName, content };
+    }
+
+    function downloadGPX() {
+      const gpxData = buildGPXData();
+      if (!gpxData) { alert('Nessuna coordinata GPS registrata.'); return; }
       const a = document.createElement('a');
-      a.href = URL.createObjectURL(new Blob([gpx], { type: 'application/gpx+xml' }));
-      a.download = `corsa_${sessionDateStr.replace(/\//g, '-')}_${sessionStartStr.replace(/:/g, '-')}.gpx`;
+      a.href = URL.createObjectURL(new Blob([gpxData.content], { type: 'application/gpx+xml' }));
+      a.download = gpxData.fileName;
       document.body.appendChild(a); a.click(); document.body.removeChild(a);
     }
 
     async function saveToGoogleSheet() {
-      const url = localStorage.getItem('run_sheet_url') || DEFAULT_SHEET_URL;
       const btn = document.getElementById('btnSaveSheet');
-      btn.disabled = true; btn.textContent = 'Salvataggio in corso...';
+      btn.disabled = true; btn.textContent = 'Salvataggio su Sheet e Drive...';
 
       let targetDesc = currentMode === 'time'
         ? `${document.getElementById('totalMinutes').value} min (int: ${document.getElementById('intervalMin').value}m ${document.getElementById('intervalSec').value}s)`
@@ -694,6 +670,8 @@
       const splitsTxt = Array.from(document.querySelectorAll('#splitsTableBody tr'))
         .map(r => { const c = r.querySelectorAll('td'); return c.length === 3 ? `${c[0].textContent}: ${c[1].textContent}` : ''; })
         .filter(Boolean).join(' | ');
+
+      const gpxData = buildGPXData();
 
       const payload = {
         date: sessionDateStr, startTime: sessionStartStr, endTime: sessionEndStr,
@@ -705,21 +683,23 @@
         notes: document.getElementById('runNotes').value.trim(),
         routeJson: JSON.stringify(routePoints.map(p => [Number(p.lat.toFixed(5)), Number(p.lng.toFixed(5))])),
         splits: splitsTxt,
-        rpe: `${document.getElementById('rpeSlider').value}/10`
+        rpe: `${document.getElementById('rpeSlider').value}/10`,
+        gpxFileName: gpxData ? gpxData.fileName : '',
+        gpxContent: gpxData ? gpxData.content : ''
       };
 
       const hist = JSON.parse(localStorage.getItem('run_history_backup') || '[]');
-      hist.push(payload);
+      hist.push({ ...payload, gpxContent: '' });
       localStorage.setItem('run_history_backup', JSON.stringify(hist));
 
       try {
-        await fetch(url, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
-        alert('Allenamento salvato su Google Sheet!');
+        await fetch(SHEET_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
+        alert('Allenamento e file GPX salvati su Google Drive!');
         resetToHome();
       } catch (e) {
         alert('Errore di rete, backup salvato localmente sul telefono.');
       } finally {
-        btn.disabled = false; btn.textContent = '☁️ SALVA SU GOOGLE SHEET';
+        btn.disabled = false; btn.textContent = '☁️ SALVA SU GOOGLE SHEET + GPX';
       }
     }
 
