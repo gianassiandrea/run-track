@@ -267,6 +267,13 @@
       border-radius: 16px;
       border: 1px solid var(--card-border);
       z-index: 1;
+      background: #151a23;
+    }
+
+    /* Tema scuro automatico per OpenStreetMap senza API Key */
+    #map .leaflet-tile-pane,
+    #summaryMap .leaflet-tile-pane {
+      filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
     }
 
     .map-wrapper {
@@ -429,7 +436,7 @@
           </div>
         </div>
 
-        <div id="summaryMap" style="height: 200px; border-radius: 12px; margin-bottom: 12px;"></div>
+        <div id="summaryMap" style="height: 200px; border-radius: 12px; margin-bottom: 12px; background: #151a23;"></div>
 
         <div class="field-group">
           <label>Note allenamento (sensazioni, scarpe, percorso)</label>
@@ -607,7 +614,6 @@
 
     // --- AVVIO CORSA ---
     function startWorkout() {
-      // Reset variabili
       isRunning = true;
       isPaused = false;
       startTimeMs = Date.now();
@@ -647,7 +653,6 @@
       initLiveMap();
       startGPS();
 
-      // Sblocca sintesi vocale su Android al click
       playBeep(880, 0.15, false);
       speak('Allenamento avviato');
 
@@ -661,11 +666,9 @@
       const elapsedMs = Date.now() - startTimeMs - pausedTotalMs;
       const elapsedSec = Math.floor(elapsedMs / 1000);
 
-      // Aggiorna UI Tempo e Passo
       document.getElementById('dispTime').textContent = formatMMSS(elapsedSec);
       updatePaceDisplay(elapsedSec, totalDistanceMeters);
 
-      // Logica avvisi Corsa a Tempo
       if (currentMode === 'time' && elapsedSec > 0) {
         const currentMin = Math.floor(elapsedSec / 60);
         const minuteTriggered = currentMin > lastMinuteSpoken;
@@ -698,15 +701,14 @@
       }
     }
 
-    // --- MAPPA E TRACCIAMENTO GPS ---
+    // --- MAPPA E TRACCIAMENTO GPS (OPENSTREETMAP SENZA API KEY) ---
     function initLiveMap() {
       if (map) {
         map.remove();
       }
-      // Centro iniziale su Firenze in attesa del primo fix GPS
       map = L.map('map', { zoomControl: false }).setView([43.8333, 11.1997], 15);
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; OpenStreetMap &copy; CARTO',
+      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap',
         maxZoom: 19
       }).addTo(map);
 
@@ -738,7 +740,6 @@
           if (!isRunning || isPaused) return;
 
           const { latitude, longitude, accuracy } = pos.coords;
-          // Filtra letture poco precise
           if (accuracy > 35) return;
 
           const newPoint = [latitude, longitude];
@@ -754,7 +755,6 @@
           const prevPoint = routeCoords[routeCoords.length - 1];
           const distDelta = haversineMeters(prevPoint[0], prevPoint[1], latitude, longitude);
 
-          // Evita micro-spostamenti da fermo (<4m) o salti anomali (>120m)
           if (distDelta >= 4 && distDelta <= 120) {
             routeCoords.push(newPoint);
             totalDistanceMeters += distDelta;
@@ -765,7 +765,6 @@
 
             document.getElementById('dispDist').textContent = (totalDistanceMeters / 1000).toFixed(2);
 
-            // Controllo soglie ogni 500m per Corsa a Chilometraggio
             if (currentMode === 'distance') {
               const current500Step = Math.floor(totalDistanceMeters / 500);
               if (current500Step > last500mStep) {
@@ -785,7 +784,7 @@
             }
           }
         },
-        (err) => {
+        () => {
           document.getElementById('gpsDot').classList.remove('active');
         },
         { enableHighAccuracy: true, maximumAge: 1000, timeout: 10000 }
@@ -844,11 +843,13 @@
       speak(`Allenamento terminato. ${finalKm.replace('.', ' virgola ')} chilometri.`);
       showScreen('screenSummary');
 
-      // Disegna mappa riepilogo
       setTimeout(() => {
         if (summaryMap) summaryMap.remove();
         summaryMap = L.map('summaryMap', { zoomControl: false });
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(summaryMap);
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '&copy; OpenStreetMap',
+          maxZoom: 19
+        }).addTo(summaryMap);
 
         if (routeCoords.length > 1) {
           const line = L.polyline(routeCoords, { color: '#00e676', weight: 5 }).addTo(summaryMap);
@@ -886,7 +887,6 @@
         targetDesc = tKm > 0 ? `Obiettivo ${tKm} km` : 'Corsa libera 500m';
       }
 
-      // Riduce leggermente i punti salvati se la corsa è molto lunga per alleggerire la cella
       const compactRoute = routeCoords.map(c => [Number(c[0].toFixed(5)), Number(c[1].toFixed(5))]);
 
       const payload = {
@@ -902,7 +902,6 @@
         routeJson: JSON.stringify(compactRoute)
       };
 
-      // Salva anche un backup locale nello smartphone
       const history = JSON.parse(localStorage.getItem('run_history_backup') || '[]');
       history.push(payload);
       localStorage.setItem('run_history_backup', JSON.stringify(history));
